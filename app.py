@@ -40,7 +40,7 @@ purchasing_costs_pct = st.sidebar.slider(
     "Purchasing costs (%)", 1.0, 8.0, 3.5, 0.1,
     help=(
         "Registration tax + notary fees as a % of the house price.\n\n"
-        "🇧🇪 Flanders (first home): 2% on first €200k + 3% above €200k + ~1% notary ≈ 3–4% total\n"
+        "🇧🇪 Flanders (first home): 2% + ~1% notary ≈ 3% total\n"
         "🇧🇪 Brussels: abatement on first €175k + 12.5% above + ~1% notary\n"
         "🇧🇪 Wallonia: 12.5% standard rate + ~1% notary\n\n"
         "Default 3.5% is a reasonable estimate for a first-time buyer in Flanders."
