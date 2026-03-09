@@ -4,11 +4,11 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 # ─────────────────────────────────────────────
-# 1. PAGE SETUP
+# 1. Page setup
 # ─────────────────────────────────────────────
-st.set_page_config(page_title="Expat Mortgage Simulator", layout="wide")
+st.set_page_config(page_title="Expat mortgage simulator", layout="wide")
 
-st.title("Expat Mortgage Simulator")
+st.title("Expat mortgage simulator")
 st.caption(
     "Strategy: Use your expat salary to qualify for a larger loan → "
     "save a fixed lump sum during the expat phase → recast the mortgage → "
@@ -16,9 +16,9 @@ st.caption(
 )
 
 # ─────────────────────────────────────────────
-# 2. SIDEBAR INPUTS
+# 2. Sidebar inputs
 # ─────────────────────────────────────────────
-st.sidebar.header("Property & Capital")
+st.sidebar.header("Property & capital")
 
 house_price = st.sidebar.number_input(
     "House price (€)", value=400_000, step=10_000,
@@ -58,7 +58,7 @@ total_years = st.sidebar.slider(
     help="Total loan duration."
 )
 
-st.sidebar.header("Expat Phase (post-purchase)")
+st.sidebar.header("Expat phase (post-purchase)")
 
 expat_years = st.sidebar.slider(
     "Years as expat after buying", 1, 10, 2,
@@ -77,7 +77,7 @@ target_phase2_payment = st.sidebar.number_input(
     help="The maximum monthly mortgage payment you can afford on your post-expat salary. The lump sum is sized to hit this exactly."
 )
 
-st.sidebar.header("Post-Expat Phase")
+st.sidebar.header("Post-expat phase")
 
 future_salary_base = st.sidebar.number_input(
     "Expected net salary post-expat (€/month)", value=3_200, step=100,
@@ -88,7 +88,7 @@ normal_monthly_savings_base = st.sidebar.number_input(
     help="Amount you'll invest each month after the expat phase (on top of the mortgage payment). Grows automatically with real salary growth."
 )
 
-st.sidebar.header("Market Assumptions")
+st.sidebar.header("Market assumptions")
 
 salary_growth_rate = st.sidebar.slider("Salary growth (%/year)", 0.0, 10.0, 4.0, 0.5,
     help="Annual increase in your gross salary.") / 100
@@ -100,7 +100,7 @@ house_appreciation_rate = st.sidebar.slider("House appreciation (%/year)", 0.0, 
     help="Expected annual increase in the property value.") / 100
 
 # ─────────────────────────────────────────────
-# 3. DERIVED CONSTANTS
+# 3. Derived constants
 # ─────────────────────────────────────────────
 purchasing_costs    = house_price * (purchasing_costs_pct / 100)
 actual_downpayment  = initial_downpayment - purchasing_costs
@@ -125,7 +125,7 @@ m_initial = (
 )
 
 # ─────────────────────────────────────────────
-# 4. PRE-SIMULATION: CALCULATE LUMP SUM TARGET
+# 4. Pre-simulation: Calculate lump sum target
 # ─────────────────────────────────────────────
 # Run a quick pass to find the loan balance at the recast date.
 _bal = principal
@@ -150,7 +150,7 @@ penalty                 = required_gross_lump_sum * monthly_rate * 3
 net_lump_sum            = required_gross_lump_sum - penalty
 
 # ─────────────────────────────────────────────
-# 5. TWO-BUCKET SPLIT OF EXPAT SAVINGS
+# 5. Two-bucket split of expat savings
 # ─────────────────────────────────────────────
 # Bucket A – Recast fund: 0% return, kept safe, exact target known upfront.
 # Bucket B – Investment portfolio: the remainder goes to long-term equities.
@@ -162,7 +162,7 @@ recast_fund_final = monthly_recast_contribution * expat_months  # exactly the ta
 actual_gross_lump_sum = min(required_gross_lump_sum, recast_fund_final)
 
 # ─────────────────────────────────────────────
-# 6. FULL SIMULATION
+# 6. Full simulation
 # ─────────────────────────────────────────────
 schedule = []
 balance           = principal
@@ -173,7 +173,7 @@ house_value       = house_price
 # Alt scenario: no recast – full expat savings all invested, no lump sum paid.
 alt_portfolio = starting_portfolio
 
-# ── PHASE 1: Expat ──────────────────────────
+# ── Phase 1: Expat ──────────────────────────
 for month in range(1, expat_months + 1):
     interest       = balance * monthly_rate
     balance       -= (m_initial - interest)
@@ -188,13 +188,13 @@ for month in range(1, expat_months + 1):
     schedule.append({
         "Month": month,
         "Payment": m_initial, "Balance": balance,
-        "Investment Portfolio": portfolio_value, "Recast Fund": recast_fund,
-        "Cash Buffer": actual_cash_buffer, "House Value": house_value,
-        "Target Salary": salary_now,
-        "Alt_Payment": m_initial, "Alt_Balance": balance, "Alt_Portfolio": alt_portfolio,
+        "Investment portfolio": portfolio_value, "Recast fund": recast_fund,
+        "Cash buffer": actual_cash_buffer, "House value": house_value,
+        "Target salary": salary_now,
+        "Alt_payment": m_initial, "Alt_balance": balance, "Alt_portfolio": alt_portfolio,
     })
 
-# ── RECAST EVENT ────────────────────────────
+# ── Recast event ────────────────────────────
 portfolio_before_recast = portfolio_value  # snapshot for summary table
 balance -= net_lump_sum                    # apply lump sum net of penalty
 portfolio_value_after_recast = portfolio_value  # investment portfolio unchanged
@@ -205,7 +205,7 @@ m_new = (
     / ((1 + monthly_rate) ** remaining_months - 1)
 ) if remaining_months > 0 else 0
 
-# ── PHASE 2: Post-expat ─────────────────────
+# ── Phase 2: Post-expat ─────────────────────
 for month in range(expat_months + 1, total_months + 1):
     interest  = balance * monthly_rate
     balance  -= (m_new - interest)
@@ -228,19 +228,19 @@ for month in range(expat_months + 1, total_months + 1):
     schedule.append({
         "Month": month,
         "Payment": m_new, "Balance": max(0, balance),
-        "Investment Portfolio": portfolio_value, "Recast Fund": 0,
-        "Cash Buffer": actual_cash_buffer, "House Value": house_value,
-        "Target Salary": salary_now,
-        "Alt_Payment": m_initial, "Alt_Balance": max(0, alt_balance), "Alt_Portfolio": alt_portfolio,
+        "Investment portfolio": portfolio_value, "Recast fund": 0,
+        "Cash buffer": actual_cash_buffer, "House value": house_value,
+        "Target salary": salary_now,
+        "Alt_payment": m_initial, "Alt_balance": max(0, alt_balance), "Alt_portfolio": alt_portfolio,
     })
 
 # ── DataFrame ───────────────────────────────
 df = pd.DataFrame(schedule)
 df["Year"] = df["Month"] / 12
-df["Total Liquid Assets"]     = df["Investment Portfolio"] + df["Cash Buffer"]
-df["Total Assets"]            = df["House Value"] + df["Total Liquid Assets"] - df["Balance"]
-df["Alt_Total Liquid Assets"] = df["Alt_Portfolio"] + df["Cash Buffer"]
-df["Alt_Total Assets"]        = df["House Value"] + df["Alt_Total Liquid Assets"] - df["Alt_Balance"]
+df["Total liquid assets"]     = df["Investment portfolio"] + df["Cash buffer"]
+df["Total assets"]            = df["House value"] + df["Total liquid assets"] - df["Balance"]
+df["Alt_total liquid assets"] = df["Alt_portfolio"] + df["Cash buffer"]
+df["Alt_total assets"]        = df["House value"] + df["Alt_total liquid assets"] - df["Alt_balance"]
 
 # ── Totals ──────────────────────────────────
 total_phase1      = m_initial * expat_months
@@ -250,9 +250,9 @@ total_interest    = total_to_bank - principal
 total_out_pocket  = initial_downpayment + total_to_bank
 
 # ─────────────────────────────────────────────
-# 7. HEADLINE METRICS — THE STRATEGY AT A GLANCE
+# 7. Headline metrics — The strategy at a glance
 # ─────────────────────────────────────────────
-st.markdown("### The Strategy at a Glance")
+st.markdown("### The strategy at a glance")
 st.caption(
     "The three phases of your plan — and whether your expat savings are enough to fund it."
 )
@@ -347,7 +347,7 @@ if initial_downpayment > total_initial_savings:
 st.markdown("---")
 
 # ─────────────────────────────────────────────
-# 8. CHARTS
+# 8. Charts
 # ─────────────────────────────────────────────
 C_WHITE    = "#F3F4F6"
 C_GREEN    = "#10B981"
@@ -366,7 +366,7 @@ fig = make_subplots(
     subplot_titles=(
         "1 — Monthly mortgage payment",
         "2 — Net worth breakdown over time",
-        "3 — Recast vs. No recast  (total net worth)",
+        "3 — Recast vs. No recast (total net worth)",
     )
 )
 
@@ -377,26 +377,26 @@ fig.add_trace(go.Scatter(
     line=dict(color=C_RED, width=2.5)
 ), row=1, col=1)
 fig.add_trace(go.Scatter(
-    x=df["Year"], y=df["Alt_Payment"], name="No-recast payment",
+    x=df["Year"], y=df["Alt_payment"], name="No-recast payment",
     line=dict(color=C_GREY, width=1.8, dash="dash")
 ), row=1, col=1)
 fig.add_trace(go.Scatter(
-    x=df["Year"], y=df["Target Salary"] * 0.33, name="33% of projected salary",
+    x=df["Year"], y=df["Target salary"] * 0.33, name="33% of projected salary",
     line=dict(color=C_GREEN, width=1.8, dash="dot")
 ), row=1, col=1)
 
 # Plot 2: Assets & Debt
 fig.add_trace(go.Scatter(
-    x=df["Year"], y=df["Total Assets"], name="Total net worth",
+    x=df["Year"], y=df["Total assets"], name="Total net worth",
     fill="tozeroy", fillcolor="rgba(243,244,246,0.04)",
     line=dict(color=C_WHITE, width=2.5)
 ), row=2, col=1)
 fig.add_trace(go.Scatter(
-    x=df["Year"], y=df["House Value"], name="House value",
+    x=df["Year"], y=df["House value"], name="House value",
     line=dict(color=C_GREEN, width=1.8, dash="dash")
 ), row=2, col=1)
 fig.add_trace(go.Scatter(
-    x=df["Year"], y=df["Total Liquid Assets"], name="Liquid assets",
+    x=df["Year"], y=df["Total liquid assets"], name="Liquid assets",
     line=dict(color=C_INDIGO, width=1.8, dash="dash")
 ), row=2, col=1)
 fig.add_trace(go.Scatter(
@@ -406,11 +406,11 @@ fig.add_trace(go.Scatter(
 
 # Plot 3: Recast vs No-Recast
 fig.add_trace(go.Scatter(
-    x=df["Year"], y=df["Total Assets"], name="Net worth (recast)",
+    x=df["Year"], y=df["Total assets"], name="Net worth (recast)",
     line=dict(color=C_WHITE, width=2.5)
 ), row=3, col=1)
 fig.add_trace(go.Scatter(
-    x=df["Year"], y=df["Alt_Total Assets"], name="Net worth (no recast)",
+    x=df["Year"], y=df["Alt_total assets"], name="Net worth (no recast)",
     line=dict(color=C_PURPLE, width=2.5, dash="dash")
 ), row=3, col=1)
 
@@ -443,9 +443,9 @@ st.plotly_chart(fig, use_container_width=True, theme=None)
 st.markdown("---")
 
 # ─────────────────────────────────────────────
-# 9. FINANCIAL BREAKDOWN
+# 9. Financial breakdown
 # ─────────────────────────────────────────────
-st.subheader("Full Financial Breakdown")
+st.subheader("Full financial breakdown")
 st.caption("Every number in the simulation, step by step — so you can explain it to anyone.")
 
 left, right = st.columns([1.35, 1])
@@ -490,7 +490,7 @@ with left:
     )
 
     # ── RECAST EVENT ─────────────────────────
-    st.markdown(f"#### 🔄 Recast — End of Year {expat_years}")
+    st.markdown(f"#### 🔄 Recast — End of year {expat_years}")
     st.markdown(
         f"The recast fund is used to make a single lump sum payment, "
         f"bringing the loan balance down to the level needed to hit your target monthly payment."
@@ -507,7 +507,7 @@ with left:
     """)
 
     # ── PHASE 2: POST-EXPAT ──────────────────
-    st.markdown(f"#### 🏡 Phase 2 — Post-Expat (year {expat_years + 1} → {total_years})")
+    st.markdown(f"#### 🏡 Phase 2 — Post-expat (year {expat_years + 1} → {total_years})")
     st.markdown(
         f"You pay **€{m_new:,.0f}/month** — "
         f"**{(m_new / future_salary_base)*100:.1f}%** of your expected "
@@ -521,13 +521,13 @@ with left:
 | Payment as % of post-expat salary | {(m_new/future_salary_base)*100:.1f}% |
 | Starting monthly investments | €{normal_monthly_savings_base:,.0f} |
 | Real savings growth (salary − inflation) | {(real_savings_growth*100):.1f}%/yr |
-| **Final total net worth** | **€{df.iloc[-1]["Total Assets"]:,.0f}** |
+| **Final total net worth** | **€{df.iloc[-1]["Total assets"]:,.0f}** |
     """)
 
 with right:
 
     # ── DONUT CHART ───────────────────────────
-    st.markdown("#### Total Cash Outflows")
+    st.markdown("#### Total cash outflows")
     labels = ["Down payment", "Lump sum (recast)", "Phase 1 payments", "Phase 2 payments"]
     values = [initial_downpayment, actual_gross_lump_sum, total_phase1, total_phase2]
     colors = [C_GREEN, C_AMBER, C_PURPLE, C_RED]
@@ -554,7 +554,7 @@ with right:
     st.plotly_chart(fig_donut, use_container_width=True, theme=None)
 
     # ── TOTALS TABLE ──────────────────────────
-    st.markdown("#### Cost Summary")
+    st.markdown("#### Cost summary")
     st.markdown(f"""
 | | Amount |
 |:--|--:|
@@ -567,9 +567,9 @@ with right:
 | of which: principal repaid | €{principal:,.0f} |
     """)
 
-    st.markdown("#### Comparison at End of Mortgage")
-    final_recast    = df.iloc[-1]["Total Assets"]
-    final_norecast  = df.iloc[-1]["Alt_Total Assets"]
+    st.markdown("#### Comparison at end of mortgage")
+    final_recast    = df.iloc[-1]["Total assets"]
+    final_norecast  = df.iloc[-1]["Alt_total assets"]
     diff = final_recast - final_norecast
     st.markdown(f"""
 | Scenario | Final net worth |
